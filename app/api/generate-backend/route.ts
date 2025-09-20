@@ -57,14 +57,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   } catch (error) {
     console.error('Generate Backend API Error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('Error type:', typeof error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    
+    let errorMessage = 'Internal server error';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
     
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Internal server error',
+      error: errorMessage,
       schemas: [],
       endpoints: [],
       database: 'PostgreSQL',
       description: '',
+      timestamp: new Date().toISOString(),
+      debug: {
+        errorType: typeof error,
+        hasStack: error instanceof Error && !!error.stack
+      }
     }, { status: 500 });
   }
 }

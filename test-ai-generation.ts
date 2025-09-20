@@ -1,23 +1,24 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Test script to verify AI backend generation works correctly
  * This script tests the core AI functionality with different use cases
  */
 
-// Import the backend generator using dynamic ES6 import
-async function loadBackendGenerator() {
-  const module = await import('./lib/ai/backend-generator.ts');
-  return module.generateBackend;
+import 'dotenv/config';
+import { generateBackend } from './lib/ai/backend-generator';
+
+interface TestCase {
+  name: string;
+  description: string;
+  expectedMinTables: number;
+  expectedMaxTables: number;
 }
 
 async function testBackendGeneration() {
   console.log('Testing AI Backend Generation...\n');
 
-  // Load the backend generator dynamically
-  const generateBackend = await loadBackendGenerator();
-
-  const testCases = [
+  const testCases: TestCase[] = [
     {
       name: 'E-commerce Platform',
       description: 'An e-commerce platform with products, orders, users, categories, shopping cart, payments, reviews, inventory management, and supplier relationships.',
@@ -84,7 +85,8 @@ async function testBackendGeneration() {
       console.log(`${isValidTableCount && endpointGroupCount > 0 ? '[PASSED]' : '[FAILED]'}\n`);
       
     } catch (error) {
-      console.log(`[ERROR]: ${error.message}\n`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.log(`[ERROR]: ${errorMessage}\n`);
     }
   }
   

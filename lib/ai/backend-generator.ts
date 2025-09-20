@@ -273,11 +273,31 @@ IMPORTANT:
       // Parse the JSON response
       let result;
       try {
-        result = JSON.parse(text.trim());
+        // Clean up the response text
+        let cleanText = text.trim();
+        
+        // Remove any markdown code blocks if present
+        if (cleanText.startsWith('```json')) {
+          cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (cleanText.startsWith('```')) {
+          cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+        
+        // Remove any leading/trailing text that isn't JSON
+        const jsonStart = cleanText.indexOf('{');
+        const jsonEnd = cleanText.lastIndexOf('}');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+          cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
+        }
+        
+        result = JSON.parse(cleanText);
       } catch (parseError) {
         console.error('JSON Parse Error:', parseError);
-        console.error('AI Response preview:', text.substring(0, 500) + '...');
-        throw new Error('AI returned invalid JSON format. Please try again.');
+        console.error('AI Response full text:', text);
+        console.error('AI Response length:', text.length);
+        console.error('Current model:', currentModel);
+        throw new Error(`AI returned invalid JSON format. Model: ${currentModel}. Error: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
       }
       
       console.log('Parsed AI result - schemas count:', result.schemas?.length || 0);
