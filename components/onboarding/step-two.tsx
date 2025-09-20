@@ -144,14 +144,14 @@ export function StepTwo({ data, onComplete, onBack }: StepTwoProps) {
   return (
     <div className="w-full max-w-7xl mx-auto py-6 px-6 space-y-6">
       {/* Header Section */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Your Generated Database Schema</h1>
-          <p className="text-sm text-muted-foreground max-w-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="space-y-2 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Your Generated Database Schema</h1>
+          <p className="text-sm text-muted-foreground">
             We've analyzed your requirements and created intelligent recommendations.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Badge variant={complexity === 'complex' ? 'destructive' : complexity === 'medium' ? 'default' : 'secondary'}>
             {complexity.charAt(0).toUpperCase() + complexity.slice(1)} Project
           </Badge>

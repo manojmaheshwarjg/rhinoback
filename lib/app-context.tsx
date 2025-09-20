@@ -1,6 +1,17 @@
 "use client"
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react'
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react'
+import { 
+  saveProjects, 
+  loadProjects, 
+  saveCurrentProject, 
+  loadCurrentProject,
+  saveChatHistory,
+  loadChatHistory,
+  saveUserPreferences,
+  loadUserPreferences,
+  cleanupDemoProjects
+} from './storage'
 
 // Types
 export interface User {
@@ -102,6 +113,7 @@ export interface DatabaseConfig {
   }
   reasoning?: string // AI explanation for database choice
   features?: string[] // What features this DB enables
+  confidence?: number // AI confidence score (0-1)
 }
 
 export interface DeploymentInfo {
@@ -160,6 +172,7 @@ type AppAction =
   | { type: 'UPDATE_PROJECT'; payload: Partial<Project> & { id: string } }
   | { type: 'DELETE_PROJECT'; payload: string }
   | { type: 'ADD_CHAT_MESSAGE'; payload: ChatMessage }
+  | { type: 'LOAD_PROJECT_CHAT'; payload: ChatMessage[] }
   | { type: 'SET_AI_TYPING'; payload: boolean }
   | { type: 'CLEAR_CHAT'; payload: void }
   | { type: 'TOGGLE_SIDEBAR'; payload: void }
@@ -209,16 +222,31 @@ function appReducer(state: AppState, action: AppAction): AppState {
       }
     
     case 'SET_CURRENT_PROJECT':
+      // Note: Chat messages will be loaded separately via useEffect in provider
       return {
         ...state,
-        currentProject: action.payload
+        currentProject: action.payload,
+        // Clear chat messages when switching projects - they'll be loaded from storage if they exist
+        chatMessages: []
       }
     
     case 'ADD_PROJECT':
+      // Avoid adding duplicate projects
+      const existingProject = state.projects.find(p => p.id === action.payload.id)
+      if (existingProject) {
+        return {
+          ...state,
+          currentProject: action.payload,
+          // Clear chat messages when switching to existing project
+          chatMessages: []
+        }
+      }
       return {
         ...state,
         projects: [...state.projects, action.payload],
-        currentProject: action.payload
+        currentProject: action.payload,
+        // Clear chat messages for new project
+        chatMessages: []
       }
     
     case 'UPDATE_PROJECT':
@@ -249,6 +277,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
         chatMessages: [...state.chatMessages, action.payload]
       }
     
+    case 'LOAD_PROJECT_CHAT':
+      return {
+        ...state,
+        chatMessages: action.payload
+      }
+    
     case 'SET_AI_TYPING':
       return {
         ...state,
@@ -256,6 +290,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       }
     
     case 'CLEAR_CHAT':
+      // Simply clear all chat messages - no welcome message needed in conversation
       return {
         ...state,
         chatMessages: []
@@ -329,6 +364,77 @@ const AppContext = createContext<{
 // Provider
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState)
+  
+  // Load persisted data on mount
+  useEffect(() => {
+    // Clean up any old demo projects first
+    cleanupDemoProjects()
+    
+    // Load projects and current project
+    const projects = loadProjects()
+    const currentProject = loadCurrentProject()
+    const preferences = loadUserPreferences()
+    
+    if (projects.length > 0) {
+      // Set projects first
+      projects.forEach(project => {
+        dispatch({ type: 'ADD_PROJECT', payload: project })
+      })
+      
+      // Then set current project if it exists and is in the loaded projects
+      // Chat messages will be loaded automatically by the separate useEffect
+      if (currentProject && projects.some(p => p.id === currentProject.id)) {
+        dispatch({ type: 'SET_CURRENT_PROJECT', payload: currentProject })
+      }
+    }
+    
+    // Apply user preferences
+    if (preferences.sidebarCollapsed !== undefined) {
+      dispatch({ type: 'TOGGLE_SIDEBAR' })
+    }
+    if (preferences.activeTab) {
+      dispatch({ type: 'SET_ACTIVE_TAB', payload: preferences.activeTab as 'schema' | 'api' | 'analytics' })
+    }
+  }, [])
+  
+  // Auto-save when state changes
+  useEffect(() => {
+    if (state.projects.length > 0) {
+      saveProjects(state.projects)
+    }
+  }, [state.projects])
+  
+  useEffect(() => {
+    saveCurrentProject(state.currentProject)
+  }, [state.currentProject])
+  
+  // Load chat messages when current project changes
+  useEffect(() => {
+    if (state.currentProject) {
+      const chatMessages = loadChatHistory(state.currentProject.id)
+      
+      // Simply load the chat messages without adding welcome message here
+      // Welcome message will be handled by the chat interface component
+      dispatch({ type: 'LOAD_PROJECT_CHAT', payload: chatMessages })
+    } else {
+      // Clear chat messages when no current project
+      dispatch({ type: 'LOAD_PROJECT_CHAT', payload: [] })
+    }
+  }, [state.currentProject?.id])
+
+  // Save chat messages when they change (including empty state)
+  useEffect(() => {
+    if (state.currentProject) {
+      saveChatHistory(state.currentProject.id, state.chatMessages)
+    }
+  }, [state.chatMessages, state.currentProject?.id])
+  
+  useEffect(() => {
+    saveUserPreferences({
+      sidebarCollapsed: state.sidebarCollapsed,
+      activeTab: state.activeTab
+    })
+  }, [state.sidebarCollapsed, state.activeTab])
   
   return (
     <AppContext.Provider value={{ state, dispatch }}>

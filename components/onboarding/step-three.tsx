@@ -187,22 +187,22 @@ export function StepThree({ data, onComplete, onBack }: StepThreeProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-foreground">{totalEndpoints}</div>
-          <div className="text-sm text-muted-foreground" style={{marginTop: '2px'}}>Total Endpoints</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
+        <Card className="p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-foreground">{totalEndpoints}</div>
+          <div className="text-xs sm:text-sm text-muted-foreground mt-1">Total Endpoints</div>
         </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-foreground">{data.endpoints.length}</div>
-          <div className="text-sm text-muted-foreground" style={{marginTop: '2px'}}>API Groups</div>
+        <Card className="p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-foreground">{data.endpoints.length}</div>
+          <div className="text-xs sm:text-sm text-muted-foreground mt-1">API Groups</div>
         </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-foreground">REST</div>
-          <div className="text-sm text-muted-foreground" style={{marginTop: '2px'}}>API Standard</div>
+        <Card className="p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-foreground">REST</div>
+          <div className="text-xs sm:text-sm text-muted-foreground mt-1">API Standard</div>
         </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-foreground">JSON</div>
-          <div className="text-sm text-muted-foreground" style={{marginTop: '2px'}}>Response Format</div>
+        <Card className="p-3 sm:p-4 text-center">
+          <div className="text-xl sm:text-2xl font-bold text-foreground">JSON</div>
+          <div className="text-xs sm:text-sm text-muted-foreground mt-1">Response Format</div>
         </Card>
       </div>
 

@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: "Rhinoback - AI Backend Builder",
   description: "Build backends that absolutely slap with AI",
   generator: "Rhinoback",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
 }
 
 export default function RootLayout({
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body className={`font-sans ${geist.variable} antialiased tracking-tight`}>
         <AppProvider>

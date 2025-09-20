@@ -1,70 +1,81 @@
 "use client"
 
 import type * as React from "react"
+import { useEffect } from "react"
 import { Folder, Zap, Rocket } from "lucide-react"
 
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar"
-
-const data = {
-  user: {
-    name: "Dev Legend",
-    email: "dev@rhinoback.com",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  teams: [
-    {
-      name: "Rhinoback",
-      logo: Rocket,
-      plan: "Pro",
-    },
-    {
-      name: "Personal",
-      logo: Zap,
-      plan: "Free",
-    },
-  ],
-  projects: [
-    {
-      name: "Social Media App",
-      url: "#",
-      icon: Folder,
-      status: "building",
-      tables: 5,
-      endpoints: 12,
-    },
-    {
-      name: "E-commerce API",
-      url: "#",
-      icon: Folder,
-      status: "deployed",
-      tables: 8,
-      endpoints: 24,
-    },
-    {
-      name: "Blog CMS",
-      url: "#",
-      icon: Folder,
-      status: "draft",
-      tables: 3,
-      endpoints: 8,
-    },
-  ],
-}
+import { useAppContext } from "@/lib/app-context"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { state, dispatch } = useAppContext()
+  const { projects, currentProject } = state
+
+  // Static data for teams and user (can be made dynamic later)
+  const staticData = {
+    user: {
+      name: "Manoj Maheshwar",
+      email: "manoj@rhinoback.com",
+      avatar: "/placeholder.svg?height=32&width=32",
+    },
+    teams: [
+      {
+        name: "Rhinoback",
+        logo: Rocket,
+        plan: "Pro",
+      },
+      {
+        name: "Personal",
+        logo: Zap,
+        plan: "Free",
+      },
+    ],
+  }
+
+  // Auto-select first project if none is selected and projects exist
+  useEffect(() => {
+    if (!currentProject && projects.length > 0) {
+      dispatch({ type: 'SET_CURRENT_PROJECT', payload: projects[0] })
+    }
+  }, [currentProject, projects, dispatch])
+
+  // Convert app context projects to nav projects format
+  const navProjects = projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    url: "#", // Currently staying on same page, could be made dynamic
+    icon: Folder,
+    status: project.status,
+    tables: project.schema?.length || 0,
+    endpoints: project.endpoints?.length || 0,
+    isActive: currentProject?.id === project.id,
+  }))
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={staticData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavProjects projects={data.projects} />
+        <NavProjects 
+          projects={navProjects} 
+          currentProject={currentProject}
+          onProjectSelect={(projectId) => {
+            const project = projects.find(p => p.id === projectId)
+            if (project) {
+              dispatch({ type: 'SET_CURRENT_PROJECT', payload: project })
+            }
+          }}
+          onProjectDelete={(projectId) => {
+            dispatch({ type: 'DELETE_PROJECT', payload: projectId })
+          }}
+        />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={staticData.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

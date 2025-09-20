@@ -2,67 +2,55 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Settings, User, LogOut, Zap, Plus, Bell, Search, GitBranch, Star, Eye, MessageSquare, Database } from "lucide-react"
+import { Settings, User, LogOut, Zap, Plus, Bell, Search, GitBranch, Star, Eye, MessageSquare, Database, Rocket } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useAppContext } from "@/lib/app-context"
+import { DeploymentModal } from "./deployment-modal"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Header() {
   const { state } = useAppContext()
   const { currentProject, projects } = state
+  const pathname = usePathname()
+  
+  // Check if we're in onboarding mode
+  const isOnboarding = pathname?.includes('/onboarding')
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white px-4 py-2 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur-sm px-3 sm:px-4 py-2 shadow-sm">
       <div className="flex items-center justify-between">
         {/* Left side - Logo, Sidebar trigger, Project info */}
-        <div className="flex items-center gap-4">
-          <SidebarTrigger className="text-gray-600 hover:bg-gray-100 hover:text-gray-900" />
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+          <SidebarTrigger className={`text-gray-600 hover:bg-gray-100 hover:text-gray-900 flex-shrink-0 ${
+            isOnboarding ? 'hidden sm:flex' : ''
+          }`} />
           
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Zap className="w-4 h-4 text-gray-600" />
+          <div className={`flex items-center gap-2 sm:gap-3 min-w-0 flex-1 ${
+            isOnboarding ? 'ml-10 sm:ml-0' : ''
+          }`}>
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
             </div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold text-gray-900">Rhinoback</h1>
-              <span className="text-gray-400">/</span>
-              {currentProject ? (
-                <span className="text-lg font-semibold text-gray-900">{currentProject.name}</span>
-              ) : (
-                <span className="text-lg text-gray-500">New Project</span>
+            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Rhinoback</h1>
+              {/* Only show project name in dashboard, not in onboarding */}
+              {!isOnboarding && (
+                <>
+                  <span className="text-gray-400 hidden sm:inline">/</span>
+                  {currentProject ? (
+                    <span className="text-sm sm:text-lg font-semibold text-gray-900 truncate hidden sm:inline">{currentProject.name}</span>
+                  ) : (
+                    <span className="text-sm sm:text-lg text-gray-500 hidden sm:inline">New Project</span>
+                  )}
+                </>
               )}
             </div>
           </div>
           
-          {/* Platform Navigation */}
-          <nav className="flex items-center gap-1 ml-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 px-3 text-gray-700 hover:bg-gray-100 font-medium"
-            >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Chat & Build
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 px-3 text-gray-700 hover:bg-gray-100 font-medium"
-            >
-              <Database className="mr-2 h-4 w-4" />
-              Database Tools
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 px-3 text-gray-700 hover:bg-gray-100 font-medium"
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-          </nav>
 
-          {/* Project status and stats */}
-          <div className="flex items-center gap-2">
+          {/* Project status and stats - hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-2">
             {currentProject && (
               <>
                 <Badge 
@@ -89,33 +77,35 @@ export function Header() {
         </div>
 
         {/* Right side - Actions and user menu */}
-        <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-gray-600 hover:bg-gray-100">
-            <Bell className="h-4 w-4" />
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          {/* Notifications - hidden on mobile */}
+          <Button variant="ghost" size="sm" className="hidden sm:flex h-8 w-8 sm:h-9 sm:w-9 p-0 text-gray-600 hover:bg-gray-100">
+            <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
 
           {/* Actions */}
           <div className="flex items-center gap-1">
-            <Link href="/onboarding">
+            <Link href="/onboarding?new=true">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="h-8 sm:h-9 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 px-2 sm:px-3"
               >
-                <Plus className="mr-2 h-4 w-4" />
-                New Project
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">New Project</span>
               </Button>
             </Link>
             
             {currentProject && (
-              <Button
-                size="sm"
-                className="h-9 bg-gray-900 hover:bg-gray-800 text-white"
-              >
-                <GitBranch className="mr-2 h-4 w-4" />
-                Deploy
-              </Button>
+              <DeploymentModal>
+                <Button
+                  size="sm"
+                  className="h-8 sm:h-9 bg-gray-900 hover:bg-gray-800 text-white px-2 sm:px-3"
+                >
+                  <Rocket className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Deploy</span>
+                </Button>
+              </DeploymentModal>
             )}
           </div>
 
@@ -125,18 +115,18 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="relative h-9 w-9 rounded-full hover:bg-gray-100"
+                className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-gray-100"
               >
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                   <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                  <AvatarFallback className="bg-gray-100 text-gray-700">DL</AvatarFallback>
+                  <AvatarFallback className="bg-gray-100 text-gray-700 text-xs sm:text-sm">MM</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <div className="px-3 py-2 border-b">
-                <p className="text-sm font-medium">Dev Legend</p>
-                <p className="text-xs text-gray-500">dev@rhinoback.com</p>
+                <p className="text-sm font-medium">Manoj Maheshwar</p>
+                <p className="text-xs text-gray-500">manoj@rhinoback.com</p>
               </div>
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
