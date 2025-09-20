@@ -53,7 +53,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const { text } = await generateText({
-      model: groq(options.model || 'llama-3.3-70b-versatile'),
+      model: groq(options.model || 'meta-llama/llama-4-scout-17b-16e-instruct'),
       messages: coreMessages,
       temperature: options.temperature ?? 1,
       maxTokens: options.maxTokens || 8192,

@@ -1,5 +1,6 @@
-import { generateText, streamText, type CoreMessage } from 'ai';
+import { generateText, streamText, generateObject, type CoreMessage } from 'ai';
 import { groq, AI_CONFIG } from './groq-client';
+import { z } from 'zod';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -171,4 +172,58 @@ export async function* streamChatCompletion(
   });
 
   yield* generateAIStream(messages, options);
+}
+
+/**
+ * Generate structured JSON response using AI SDK
+ * This is the equivalent of using response_format: {"type": "json_object"}
+ */
+export async function generateJSONCompletion<T>(
+  messages: AIMessage[],
+  schema: z.ZodSchema<T>,
+  options: AIGenerationOptions = {}
+): Promise<T> {
+  try {
+    const coreMessages = convertMessages(messages);
+    
+    const { object } = await generateObject({
+      model: groq(options.model || AI_CONFIG.model),
+      messages: coreMessages,
+      schema,
+      temperature: options.temperature ?? AI_CONFIG.temperature,
+      maxTokens: options.maxTokens || AI_CONFIG.maxTokens,
+    });
+
+    return object;
+  } catch (error) {
+    console.error('AI JSON Generation Error:', error);
+    throw new Error(`AI JSON generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Simple JSON completion with automatic schema inference
+ */
+export async function generateSimpleJSON(
+  prompt: string,
+  options: AIGenerationOptions = {}
+): Promise<any> {
+  const messages: AIMessage[] = [
+    {
+      role: 'system',
+      content: 'You must respond with valid JSON only. Do not include any explanations or additional text outside the JSON.',
+    },
+    {
+      role: 'user',
+      content: prompt,
+    },
+  ];
+
+  try {
+    const response = await generateAI(messages, options);
+    return JSON.parse(response);
+  } catch (error) {
+    console.error('JSON parsing error:', error);
+    throw new Error(`Failed to generate valid JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
