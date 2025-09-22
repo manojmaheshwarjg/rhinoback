@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { InteractiveSchemaDiagram } from "@/components/interactive-schema-diagram"
+import { ReactFlowSchemaEditor } from "@/components/reactflow/reactflow-schema-editor"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -175,7 +175,7 @@ export default function SchemaEditor() {
       <div className="flex-1 overflow-hidden pt-12 sm:pt-14">
         {/* Schema Editor - Full Width */}
         <main className="h-full w-full">
-          <InteractiveSchemaDiagram 
+          <ReactFlowSchemaEditor 
             onTableEdit={handleUpdateTable}
             onTableDelete={handleDeleteTable}
             onTableDuplicate={handleDuplicateTable}
